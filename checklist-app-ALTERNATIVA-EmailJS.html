@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -613,7 +614,7 @@
 
     <script>
         // Inicializar EmailJS
-        emailjs.init("IJm-Bibn8aPpk4Dhc");
+        emailjs.init("Rc0QBk6dTEvYxKrVg");
         
         // Establecer fecha actual
         document.getElementById('fecha').valueAsDate = new Date();
@@ -715,9 +716,10 @@
 
                 // Enviar email via EmailJS
                 const response = await emailjs.send(
-                    'service_lxrlqfh',
+                    'service_lxrlqf',
                     'template_io8skf8',
-                    templateParams);
+                    templateParams
+                );
 
                 if (response.status === 200) {
                     showStatus('✓ Checklist enviado exitosamente a email y WhatsApp', 'success');
