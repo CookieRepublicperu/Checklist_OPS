@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist - Módulo de Galletas</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #8B4513;
+            --secondary: #D2691E;
+            --accent: #FFD700;
+            --success: #27AE60;
+            --danger: #E74C3C;
+            --bg-light: #FFF8F0;
+            --bg-dark: #2C1810;
+            --text-dark: #1a1a1a;
+            --text-light: #f5f5f5;
+            --border: #D4A574;
+            --shadow: 0 10px 40px rgba(139, 69, 19, 0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-light) 0%, #FFECD1 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: var(--secondary);
+            font-weight: 500;
+        }
+
+        .info-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-group label {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-group input,
+        .info-group select {
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .info-group input:focus,
+        .info-group select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(210, 105, 30, 0.1);
+        }
+
+        .checklist-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        .section {
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            font-size: 1.3em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 0.3px;
+        }
+
+        .section-icon {
+            font-size: 1.5em;
+            min-width: 30px;
+        }
+
+        .section-items {
+            padding: 0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+            gap: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .checklist-item:hover {
+            background: var(--bg-light);
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--success);
+            flex-shrink: 0;
+        }
+
+        .checklist-item input[type="checkbox"]:checked + .item-label {
+            color: #999;
+            text-decoration: line-through;
+        }
+
+        .item-label {
+            flex: 1;
+            font-weight: 500;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .item-note {
+            width: 150px;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9em;
+            background: #fafafa;
+            transition: all 0.3s ease;
+        }
+
+        .item-note:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: white;
+        }
+
+        .progress-section {
+            padding: 20px;
+            background: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .progress-label {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, #2ecc71 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: inherit;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--success) 0%, #27ae60 100%);
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-reset:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 69, 19, 0.2);
+        }
+
+        .status-message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            animation: slideIn 0.4s ease-out;
+            font-weight: 500;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.success {
+            background: #D4EDDA;
+            color: #155724;
+            border-left: 4px solid var(--success);
+        }
+
+        .status-message.error {
+            background: #F8D7DA;
+            color: #721C24;
+            border-left: 4px solid var(--danger);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .info-section {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                font-size: 1.1em;
+                padding: 16px;
+            }
+
+            .checklist-item {
+                padding: 12px 15px;
+                flex-wrap: wrap;
+            }
+
+            .item-note {
+                width: 100%;
+                margin-top: 8px;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍪 Checklist Módulo</h1>
+            <p>Sistema de Control - Venta de Galletas</p>
+        </div>
+
+        <form id="checklistForm">
+            <!-- Información General -->
+            <div class="info-section">
+                <div class="info-group">
+                    <label for="fecha">Fecha</label>
+                    <input type="date" id="fecha" name="fecha" required>
+                </div>
+                <div class="info-group">
+                    <label for="responsable">Responsable</label>
+                    <input type="text" id="responsable" name="responsable" placeholder="Nombre completo" required>
+                </div>
+            </div>
+
+            <!-- Checklist -->
+            <div class="checklist-container">
+                <!-- APERTURA -->
+                <div class="section">
+                    <div class="section-header">
+                        <span class="section-icon">📂</span>
+                        APERTURA
+                    </div>
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>Progreso</span>
+                            <span><span class="completed-apertura">0</span>/10</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-apertura" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="section-items" id="apertura">
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea1" class="apertura-check">
+                            <label for="tarea1" class="item-label">Verificar estado físico del módulo</label>
+                            <input type="text" class="item-note apertura-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea2" class="apertura-check">
+                            <label for="tarea2" class="item-label">Limpiar y desinfectar mostradores</label>
+                            <input type="text" class="item-note apertura-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea3" class="apertura-check">
+                            <label for="tarea3" class="item-label">Revisar equipos de refrigeración</label>
+                            <input type="text" class="item-note apertura-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea4" class="apertura-check">
+                            <label for="tarea4" class="item-label">Contar y registrar inventario inicial</label>
+                            <input type="text" class="item-note apertura-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea5" class="apertura-check">
+                            <label for="tarea5" class="item-label">Verificar materiales de venta</label>
+                            <input type="text" class="item-note apertura-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea6" class="apertura-check">
+                            <label for="tarea6" class="item-label">Revisar caja registradora/POS</label>
+                            <input type="text" class="item-note apertura-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea7" class="apertura-check">
+                            <label for="tarea7" class="item-label">Contar fondo de caja inicial</label>
+                            <input type="text" class="item-note apertura-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea8" class="apertura-check">
+                            <label for="tarea8" class="item-label">Verificar disponibilidad de productos</label>
+                            <input type="text" class="item-note apertura-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea9" class="apertura-check">
+                            <label for="tarea9" class="item-label">Revisar caducidad de productos</label>
+                            <input type="text" class="item-note apertura-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea10" class="apertura-check">
+                            <label for="tarea10" class="item-label">Encender señalización y luces</label>
+                            <input type="text" class="item-note apertura-note" placeholder="Nota...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MEDIO TURNO -->
+                <div class="section">
+                    <div class="section-header">
+                        <span class="section-icon">⏱️</span>
+                        MEDIO TURNO
+                    </div>
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>Progreso</span>
+                            <span><span class="completed-medio">0</span>/6</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-medio" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="section-items" id="medio">
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea11" class="medio-check">
+                            <label for="tarea11" class="item-label">Reposición de productos en exhibidor</label>
+                            <input type="text" class="item-note medio-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea12" class="medio-check">
+                            <label for="tarea12" class="item-label">Limpiar mostradores y área de venta</label>
+                            <input type="text" class="item-note medio-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea13" class="medio-check">
+                            <label for="tarea13" class="item-label">Verificar funcionamiento de equipos</label>
+                            <input type="text" class="item-note medio-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea14" class="medio-check">
+                            <label for="tarea14" class="item-label">Revisar niveles de inventario</label>
+                            <input type="text" class="item-note medio-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea15" class="medio-check">
+                            <label for="tarea15" class="item-label">Verificar caja registradora/transacciones</label>
+                            <input type="text" class="item-note medio-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea16" class="medio-check">
+                            <label for="tarea16" class="item-label">Contar efectivo y conciliar ventas</label>
+                            <input type="text" class="item-note medio-note" placeholder="Nota...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CIERRE -->
+                <div class="section">
+                    <div class="section-header">
+                        <span class="section-icon">🔒</span>
+                        CIERRE
+                    </div>
+                    <div class="progress-section">
+                        <div class="progress-label">
+                            <span>Progreso</span>
+                            <span><span class="completed-cierre">0</span>/11</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-cierre" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="section-items" id="cierre">
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea17" class="cierre-check">
+                            <label for="tarea17" class="item-label">Recoger y guardar productos del exhibidor</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea18" class="cierre-check">
+                            <label for="tarea18" class="item-label">Realizar limpieza profunda del módulo</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea19" class="cierre-check">
+                            <label for="tarea19" class="item-label">Desinfectar todas las superficies</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea20" class="cierre-check">
+                            <label for="tarea20" class="item-label">Apagar equipos de refrigeración</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea21" class="cierre-check">
+                            <label for="tarea21" class="item-label">Revisar y guardar cajas de producto vacías</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea22" class="cierre-check">
+                            <label for="tarea22" class="item-label">Contar efectivo final</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea23" class="cierre-check">
+                            <label for="tarea23" class="item-label">Registrar ventas del día</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea24" class="cierre-check">
+                            <label for="tarea24" class="item-label">Conciliar caja (efectivo vs. sistema)</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea25" class="cierre-check">
+                            <label for="tarea25" class="item-label">Preparar reporte de cierre</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea26" class="cierre-check">
+                            <label for="tarea26" class="item-label">Apagar luces y señalización</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="tarea27" class="cierre-check">
+                            <label for="tarea27" class="item-label">Cerrar y asegurar el módulo</label>
+                            <input type="text" class="item-note cierre-note" placeholder="Nota...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="action-buttons">
+                <button type="reset" class="btn-reset">Limpiar Formulario</button>
+                <button type="submit" class="btn-submit" id="submitBtn">Enviar Checklist</button>
+            </div>
+
+            <!-- Mensajes de Estado -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Enviando checklist...</p>
+            </div>
+            <div class="status-message" id="statusMessage"></div>
+        </form>
+    </div>
+
+    <script>
+        // Inicializar EmailJS
+        emailjs.init("YOUR_PUBLIC_KEY_HERE");
+        
+        // Establecer fecha actual
+        document.getElementById('fecha').valueAsDate = new Date();
+
+        // Actualizar progreso
+        function updateProgress(sectionClass, totalTasks) {
+            const checkboxes = document.querySelectorAll(`.${sectionClass}-check:checked`);
+            const completed = checkboxes.length;
+            const percentage = (completed / totalTasks) * 100;
+            
+            document.querySelector(`.completed-${sectionClass}`).textContent = completed;
+            document.querySelector(`.progress-${sectionClass}`).style.width = percentage + '%';
+        }
+
+        // Eventos de checkboxes
+        document.querySelectorAll('.apertura-check').forEach(cb => {
+            cb.addEventListener('change', () => updateProgress('apertura', 10));
+        });
+        document.querySelectorAll('.medio-check').forEach(cb => {
+            cb.addEventListener('change', () => updateProgress('medio', 6));
+        });
+        document.querySelectorAll('.cierre-check').forEach(cb => {
+            cb.addEventListener('change', () => updateProgress('cierre', 11));
+        });
+
+        // Recolectar datos
+        function collectData() {
+            const data = {
+                fecha: document.getElementById('fecha').value,
+                responsable: document.getElementById('responsable').value,
+                timestamp: new Date().toLocaleString('es-PE'),
+                apertura: [],
+                medio: [],
+                cierre: []
+            };
+
+            // Recolectar tareas de cada sección
+            document.querySelectorAll('.apertura-check').forEach((cb, i) => {
+                const note = cb.parentElement.querySelector('.apertura-note').value;
+                data.apertura.push({
+                    completado: cb.checked,
+                    nota: note
+                });
+            });
+
+            document.querySelectorAll('.medio-check').forEach((cb, i) => {
+                const note = cb.parentElement.querySelector('.medio-note').value;
+                data.medio.push({
+                    completado: cb.checked,
+                    nota: note
+                });
+            });
+
+            document.querySelectorAll('.cierre-check').forEach((cb, i) => {
+                const note = cb.parentElement.querySelector('.cierre-note').value;
+                data.cierre.push({
+                    completado: cb.checked,
+                    nota: note
+                });
+            });
+
+            return data;
+        }
+
+        // Enviar formulario
+        document.getElementById('checklistForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = collectData();
+            const loading = document.getElementById('loading');
+            const statusMsg = document.getElementById('statusMessage');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Validaciones
+            if (!data.responsable) {
+                showStatus('Por favor ingresa el nombre del responsable', 'error');
+                return;
+            }
+
+            // Mostrar loading
+            loading.classList.add('show');
+            submitBtn.disabled = true;
+
+            try {
+                // Preparar email
+                const templateParams = {
+                    to_email: 'jorgeaoki@cookierepublic.com',
+                    to_phone: '+51949350377',
+                    fecha: data.fecha,
+                    responsable: data.responsable,
+                    timestamp: data.timestamp,
+                    apertura_completadas: data.apertura.filter(t => t.completado).length,
+                    medio_completadas: data.medio.filter(t => t.completado).length,
+                    cierre_completadas: data.cierre.filter(t => t.completado).length,
+                    apertura_details: JSON.stringify(data.apertura),
+                    medio_details: JSON.stringify(data.medio),
+                    cierre_details: JSON.stringify(data.cierre)
+                };
+
+                // Enviar email via EmailJS
+                const response = await emailjs.send(
+                    'service_lxrlqf',
+                    'template_io8skf8',
+                    templateParams
+                );
+
+                if (response.status === 200) {
+                    showStatus('✓ Checklist enviado exitosamente a email y WhatsApp', 'success');
+                    document.getElementById('checklistForm').reset();
+                    document.getElementById('fecha').valueAsDate = new Date();
+                    updateProgress('apertura', 10);
+                    updateProgress('medio', 6);
+                    updateProgress('cierre', 11);
+                } else {
+                    showStatus('Error al enviar. Por favor intenta nuevamente.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Error: ' + error.message, 'error');
+            } finally {
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showStatus(message, type) {
+            const statusMsg = document.getElementById('statusMessage');
+            statusMsg.textContent = message;
+            statusMsg.className = `status-message show ${type}`;
+            setTimeout(() => {
+                statusMsg.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
